@@ -1,0 +1,15 @@
+[소스 머지 빌드]
+cd ~/english-word-app
+git pull
+workon ewa-venv
+pip install -r requirements.txt
+
+
+
+[mysql접속]
+mysql -u anredvon -h anredvon.mysql.pythonanywhere-services.com -p
+패스워드 입력
+
+USE `anredvon$default`;
+
+select * from words;
