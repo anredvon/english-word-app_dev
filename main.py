@@ -183,3 +183,12 @@ def api_delete_word(wid):
 # =======================
 if __name__ == "__main__":
     app.run(host="0.0.0.0",port=3000,debug=True)
+
+# /home/redvon1216/apps/english-word-app_dev/main.py
+from flask import Flask, send_from_directory
+
+app = Flask(__name__, static_folder='static', static_url_path='/')
+
+@app.route("/health")
+def health():
+    return "ok"
