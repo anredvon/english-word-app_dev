@@ -198,7 +198,7 @@ btnQuiz?.addEventListener("click", async ()=>{
   const d = filterDateEl?.value || "";
   const pool = await jget(`/api/quiz${d?`?date=${d}`:""}`);
   if(pool.length<4){ alert("퀴즈는 단어가 최소 4개 이상 필요해요."); return; }
-  quizState.pool = shuffle(pool).slice(0, 50);
+  quizState.pool = shuffle(pool).slice(0, 100);
   quizState.idx=0; quizState.score=0; quizState.wrongIds=[];
   quizState.mode = quizModeSel?.value || "en2ko";
   qWrongOnly.disabled = true;
