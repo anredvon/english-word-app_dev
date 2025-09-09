@@ -8,10 +8,10 @@ app = Flask(__name__)
 # MySQL 연결 설정
 # =======================
 DB = {
-    "host": "anredvon.mysql.pythonanywhere-services.com",
-    "user": "anredvon",
+    "host": "redvon1216.mysql.pythonanywhere-services.com",
+    "user": "redvon1216",
     "password": os.environ.get("DB_PASS", "여기에실패시쓸패스워드"),  # PythonAnywhere Web탭 → Environment Variables에 DB_PASS 등록 권장
-    "database": "anredvon$default",
+    "database": "redvon1216$default",
     "charset": "utf8mb4",
     "cursorclass": pymysql.cursors.DictCursor,
 }
@@ -183,12 +183,3 @@ def api_delete_word(wid):
 # =======================
 if __name__ == "__main__":
     app.run(host="0.0.0.0",port=3000,debug=True)
-
-# /home/redvon1216/apps/english-word-app_dev/main.py
-from flask import Flask, send_from_directory
-
-app = Flask(__name__, static_folder='static', static_url_path='/')
-
-@app.route("/health")
-def health():
-    return "ok"
