@@ -6,12 +6,74 @@
   <title>🦖지훈이의 신나는 영어단어 학습</title>
   <link rel="stylesheet" href="/static/style.css">
   <script defer src="/static/app.js"></script>
+<style>
+  :root{ --brand:#ff6600; --bg:#f6f7f9; --text:#222; --muted:#8a8f98; --surface:#fff; --radius-xl:24px; }
+  /* HERO 카드 */
+  .hero{ padding:20px 16px 8px; }
+  .hero-card{ background:var(--brand); border-radius:var(--radius-xl); padding:24px; box-shadow:0 8px 20px rgba(0,0,0,.08); }
+  .hero-title{ margin:0 0 14px; font-size:22px; line-height:1.25; color:#fff; font-weight:800; }
+  /* 검색 바(접근성용 submit은 숨김) */
+  .search-bar{ display:flex; align-items:center; gap:10px; background:#ffe9d7; border-radius:16px; padding:12px 14px; }
+  .search-icon{ display:inline-flex; opacity:.9; color:#7a4c2a; }
+  .search-bar input{ flex:1; border:none; outline:none; background:transparent; font-size:16px; color:#333; }
+  .search-bar input::placeholder{ color:#9c7e6a; }
+  .search-submit{ position:absolute; width:1px; height:1px; margin:-1px; padding:0; border:0; clip:rect(0 0 0 0); overflow:hidden; }
+
+  /* 캘린더 */
+  .calendar{ margin:16px 0 8px; display:grid; grid-template-columns:repeat(7,1fr); gap:6px; text-align:center; font-size:14px; }
+  .calendar .weekday{ font-weight:700; color:#8a8f98; padding:6px 0; }
+  .calendar .day{ padding:10px 6px; border-radius:8px; min-height:44px; background:#f5f5f7; position:relative; }
+  .calendar .day.empty{ background:transparent; }
+  .calendar .day .num{ font-weight:600; }
+  .calendar .day.marked{ color:#fff; background:#ff6600; }           /* level1 */
+  .calendar .day.marked[data-level="2"]{ background:#ff7f2a; }        /* level2 */
+  .calendar .day.marked[data-level="3"]{ background:#ff944d; }        /* level3 */
+
+  /* 월 전환 */
+  .cal-nav{ display:flex; align-items:center; justify-content:center; gap:12px; margin:6px 0 20px; }
+  .cal-label{ font-weight:800; color:#555; }
+
+  /* 다크모드 보완 */
+  @media (prefers-color-scheme: dark){
+    :root{ --bg:#0e0f12; --text:#f3f4f6; --surface:#1a1c21; }
+    .hero-card{ box-shadow:none; }
+    .search-bar{ background:rgba(255,255,255,.1); }
+    .search-bar input{ color:#fff; }
+    .search-bar input::placeholder{ color:#cfcfcf; }
+    .calendar .day{ background:#1f232b; }
+  }
+</style>
 </head>
 <body>
   <header>
     <h1>지훈이의 신나는 영어단어 학습.....🦖</h1>
     <p>단어등록 · 단어카드 확인· 다양한 퀴즈 Mode</p>
   </header>
+
+<!-- === [추가] HERO 검색 + 캘린더 (기존 기능 보존: 아래 JS가 기존 #search와 연동) === -->
+<section class="hero">
+  <div class="hero-card">
+    <h1 class="hero-title">지훈이의 신나는 영어단어 학습 🦖</h1>
+    <form id="searchForm" class="search-bar" onsubmit="return false;">
+      <span class="search-icon" aria-hidden="true">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M21 21l-4.2-4.2m1.7-5.3a7 7 0 1 1-14 0 7 7 0 0 1 14 0z"
+                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </span>
+      <input id="searchInput" type="search" autocomplete="off" placeholder="검색어를 입력해주세요" aria-label="단어 검색" />
+      <button class="search-submit" type="submit" aria-label="검색">검색</button>
+    </form>
+  </div>
+</section>
+<div id="calendarContainer" class="calendar"></div>
+<div class="cal-nav">
+  <button id="prevMonthBtn" aria-label="이전 달">◀︎</button>
+  <div id="calLabel" class="cal-label"></div>
+  <button id="nextMonthBtn" aria-label="다음 달">▶︎</button>
+</div>
+
+
 
   <main>
     <!-- 단일 단어 등록 -->
