@@ -410,3 +410,97 @@ def api_word_dates():
     dates = [r["d"].strftime("%Y-%m-%d") for r in rows]
     by_count = {r["d"].strftime("%Y-%m-%d"): int(r["cnt"]) for r in rows}
     return jsonify({"dates": dates, "byCount": by_count})
+
+// ===== [추가] HERO 검색 → 기존 검색(#search)로 위임 =====
+// - 기존 검색 로직/렌더 함수 변경 없이, 값만 주입 후 render()를 호출합니다.
+document.getElementById('searchForm')?.addEventListener('submit', (e)=>{
+  e.preventDefault();
+  const v = document.getElementById('searchInput')?.value || '';
+  const searchEl = document.getElementById('search');
+  if (searchEl) {
+    searchEl.value = v;   // 기존 검색 인풋에 값 반영
+    if (typeof render === 'function') render(); // 기존 렌더 재사용
+  }
+});
+
+// ===== [추가] 등록일 캘린더 표시 (기존 기능 보존) =====
+(function(){
+  let regSet = new Set();         // "YYYY-MM-DD"
+  let regCount = {};              // {"YYYY-MM-DD": number}
+  let calY, calM;
+  const WEEK = ['일','월','화','수','목','금','토'];
+
+  async function loadDates(){
+    try{
+      const r = await fetch('/api/word-dates', { cache:'no-store' });
+      if(!r.ok) throw new Error('failed');
+      const j = await r.json();
+      regSet = new Set(j.dates || []);
+      regCount = j.byCount || {};
+    }catch(e){
+      // 실패 시 캘린더만 비워둡니다. 기존 기능 영향 없음.
+      regSet = new Set(); regCount = {};
+      console.warn('calendar: load failed', e);
+    }
+  }
+
+  function renderCal(y,m){
+    const el = document.getElementById('calendarContainer');
+    if(!el) return;
+    el.innerHTML = '';
+
+    // 요일 헤더
+    WEEK.forEach(w=>{
+      const h = document.createElement('div');
+      h.className = 'weekday'; h.textContent = w; el.appendChild(h);
+    });
+
+    const first = new Date(y,m,1);
+    const pad = first.getDay();
+    const days = new Date(y,m+1,0).getDate();
+
+    for(let i=0;i<pad;i++){
+      const d=document.createElement('div');
+      d.className='day empty'; el.appendChild(d);
+    }
+    for(let d=1; d<=days; d++){
+      const mm = String(m+1).padStart(2,'0');
+      const dd = String(d).padStart(2,'0');
+      const key = `${y}-${mm}-${dd}`;
+
+      const cell = document.createElement('div');
+      cell.className='day';
+      cell.innerHTML = `<span class="num">${d}</span>`;
+
+      if(regSet.has(key)){
+        cell.classList.add('marked');
+        const c = regCount[key] || 1;
+        const lv = c>=6?3:(c>=3?2:1);
+        cell.dataset.level = String(lv);
+      }
+      el.appendChild(cell);
+    }
+    const lbl = document.getElementById('calLabel');
+    if(lbl) lbl.textContent = `${y}.${String(m+1).padStart(2,'0')}`;
+  }
+
+  function bindNav(){
+    document.getElementById('prevMonthBtn')?.addEventListener('click', ()=>{
+      calM -= 1; if(calM<0){ calM=11; calY-=1; }
+      renderCal(calY,calM);
+    });
+    document.getElementById('nextMonthBtn')?.addEventListener('click', ()=>{
+      calM += 1; if(calM>11){ calM=0; calY+=1; }
+      renderCal(calY,calM);
+    });
+  }
+
+  // 독립 초기화 (기존 초기화와 분리)
+  (async function initCal(){
+    await loadDates();
+    const t = new Date();
+    calY = t.getFullYear(); calM = t.getMonth();
+    renderCal(calY,calM);
+    bindNav();
+  })();
+})();
