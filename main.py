@@ -181,5 +181,31 @@ def api_delete_word(wid):
     return jsonify({"ok": True})
 
 # =======================
+
+# === [추가] 등록일 캘린더용 날짜/건수 API (registered_on 기준, 기존 스키마 유지) ===
+@app.get("/api/word-dates")
+def api_word_dates():
+    sql = """
+      SELECT registered_on AS d, COUNT(*) AS cnt
+      FROM words
+      WHERE registered_on IS NOT NULL
+      GROUP BY registered_on
+      ORDER BY registered_on
+    """
+    with get_conn() as conn, conn.cursor() as cur:
+        cur.execute(sql)
+        rows = cur.fetchall()
+
+    def _to_str(v):
+        try:
+            return v.isoformat()
+        except AttributeError:
+            return str(v)
+
+    dates = [_to_str(r["d"]) for r in rows]
+    by_count = { _to_str(r["d"]): int(r["cnt"]) for r in rows }
+    return jsonify({"dates": dates, "byCount": by_count})
+
+
 if __name__ == "__main__":
     app.run(host="0.0.0.0",port=3000,debug=True)
