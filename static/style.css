@@ -166,7 +166,7 @@ select:disabled {
 .choices .choice.wrong { background: #dc3545; color: white; }
 .choices .choice.disabled { opacity: 0.6; pointer-events: none; }
 
-/* 주관식 입력 */
+/* 주관식 입력 */ 
 #qInputWrap {
   display: flex;
   gap: 8px;
