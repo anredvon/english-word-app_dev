@@ -375,3 +375,38 @@ statsClose?.addEventListener("click", ()=> statsModal.classList.add("hidden"));
 /* ====== 최초 로드 ====== */
 currentFilterDate = filterDateEl?.value || "";
 loadWords({date: currentFilterDate}).catch(()=> alert("목록을 불러오지 못했습니다."));
+
+
+
+from flask import Flask, jsonify
+import pymysql, os
+
+app = Flask(__name__)
+
+def get_conn():
+    return pymysql.connect(
+        host=os.getenv("DB_HOST", "localhost"),
+        user=os.getenv("DB_USER", "user"),
+        password=os.getenv("DB_PASS", "pass"),
+        db=os.getenv("DB_NAME", "english"),
+        charset="utf8mb4",
+        cursorclass=pymysql.cursors.DictCursor,
+        autocommit=True,
+    )
+
+@app.route("/api/word-dates")
+def api_word_dates():
+    # 서버 시간이 UTC라면 아래 tz_sql 사용, KST라면 tz_sql을 date_sql로 바꿔 쓰세요.
+    tz_sql = """
+      SELECT DATE(CONVERT_TZ(created_at,'UTC','Asia/Seoul')) AS d, COUNT(*) AS cnt
+      FROM words
+      GROUP BY DATE(CONVERT_TZ(created_at,'UTC','Asia/Seoul'))
+      ORDER BY d
+    """
+    with get_conn() as conn, conn.cursor() as cur:
+        cur.execute(tz_sql)
+        rows = cur.fetchall()
+
+    dates = [r["d"].strftime("%Y-%m-%d") for r in rows]
+    by_count = {r["d"].strftime("%Y-%m-%d"): int(r["cnt"]) for r in rows}
+    return jsonify({"dates": dates, "byCount": by_count})
