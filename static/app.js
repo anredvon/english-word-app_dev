@@ -447,7 +447,8 @@ document.getElementById('searchForm')?.addEventListener('submit', (e)=>{
       el.appendChild(cell);
     }
     const lbl = document.getElementById('calLabel');
-    if(lbl) lbl.textContent = `${y}.${String(m+1).padStart(2,'0')}`;
+    //if(lbl) lbl.textContent = `${y}.${String(m+1).padStart(2,'0')}`;
+    if(lbl) lbl.textContent = `${y}년 ${m+1}월`;
   }
 
   function bindNav(){
