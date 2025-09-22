@@ -444,6 +444,13 @@ document.getElementById('searchForm')?.addEventListener('submit', (e)=>{
         const lv = c>=6?3:(c>=3?2:1);
         cell.dataset.level = String(lv);
       }
+      cell.addEventListener('click', async ()=>{
+       currentFilterDate = key;
+       if (document.getElementById('filterDate')) {
+         document.getElementById('filterDate').value = key;
+       }
+       await loadWords({date: key});
+     });
       el.appendChild(cell);
     }
     const lbl = document.getElementById('calLabel');
