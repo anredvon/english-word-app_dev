@@ -10,6 +10,6 @@ pip install -r requirements.txt
 mysql -u anredvon -h anredvon.mysql.pythonanywhere-services.com -p
 패스워드 입력
 
-USE `anredvon$default`;
+USE `redvon1216$default`;
 
 select * from words;
