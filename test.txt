@@ -1,7 +1,7 @@
 [소스 머지 빌드]
-cd ~/english-word-app
+cd ~/english-word-app_dev
 git pull
-workon ewa-venv
+workon english-word-app-dev
 pip install -r requirements.txt
 
 
