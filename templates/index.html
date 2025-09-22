@@ -1,148 +1,107 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-  <meta charset="UTF-8">
-  <title>🦖지훈이의 신나는 영어단어 학습</title>
-  <link rel="stylesheet" href="/static/style.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+  <title>지훈이의 신나는 영어단어 학습</title>
+  <link rel="stylesheet" href="/static/style.css" />
   <script defer src="/static/app.js"></script>
-<style>
-  :root{ --brand:#ff6600; --bg:#f6f7f9; --text:#222; --muted:#8a8f98; --surface:#fff; --radius-xl:24px; }
-  /* HERO 카드 */
-  .hero{ padding:20px 16px 8px; }
-  .hero-card{ background:var(--brand); border-radius:var(--radius-xl); padding:24px; box-shadow:0 8px 20px rgba(0,0,0,.08); }
-  .hero-title{ margin:0 0 14px; font-size:22px; line-height:1.25; color:#fff; font-weight:800; }
-  /* 검색 바(접근성용 submit은 숨김) */
-  .search-bar{ display:flex; align-items:center; gap:10px; background:#ffe9d7; border-radius:16px; padding:12px 14px; }
-  .search-icon{ display:inline-flex; opacity:.9; color:#7a4c2a; }
-  .search-bar input{ flex:1; border:none; outline:none; background:transparent; font-size:16px; color:#333; }
-  .search-bar input::placeholder{ color:#9c7e6a; }
-  .search-submit{ position:absolute; width:1px; height:1px; margin:-1px; padding:0; border:0; clip:rect(0 0 0 0); overflow:hidden; }
-
-  /* 캘린더 */
-  .calendar{ margin:16px 0 8px; display:grid; grid-template-columns:repeat(7,1fr); gap:6px; text-align:center; font-size:14px; }
-  .calendar .weekday{ font-weight:700; color:#8a8f98; padding:6px 0; }
-  .calendar .day{ padding:10px 6px; border-radius:8px; min-height:44px; background:#f5f5f7; position:relative; }
-  .calendar .day.empty{ background:transparent; }
-  .calendar .day .num{ font-weight:600; }
-  .calendar .day.marked{ color:#fff; background:#2ecc71; }           /* level1 */
-  .calendar .day.marked[data-level="2"]{ background:#27ae60; }        /* level2 */
-  .calendar .day.marked[data-level="3"]{ background:#1e8449; }        /* level3 */
-
-  /* 월 전환 */
-  .cal-nav{ display:flex; align-items:center; justify-content:center; gap:12px; margin:6px 0 20px; }
-  .cal-label{ font-weight:800; color:#555; }
-
-  /* 다크모드 보완 */
-  @media (prefers-color-scheme: dark){
-    :root{ --bg:#0e0f12; --text:#f3f4f6; --surface:#1a1c21; }
-    .hero-card{ box-shadow:none; }
-    .search-bar{ background:rgba(255,255,255,.1); }
-    .search-bar input{ color:#fff; }
-    .search-bar input::placeholder{ color:#cfcfcf; }
-    .calendar .day{ background:#1f232b; }
-  }
-</style>
 </head>
 <body>
+  <!-- HERO -->
+  <section class="hero">
+    <div class="hero-card">
+      <div class="hero-head">
+        <h1 class="hero-title">지훈이의 신나는<br />영어단어 학습....🦖</h1>
+        <span class="heart-badge" aria-hidden="true">❤</span>
+      </div>
+      <form id="searchForm" class="search-bar" onsubmit="return false;">
+        <span class="search-icon" aria-hidden="true">🔎</span>
+        <input id="searchInput" type="search" placeholder="검색어를 입력해주세요" aria-label="단어 검색" />
+        <button class="sr-only" type="submit">검색</button>
+      </form>
+    </div>
+  </section>
 
-<!-- === [추가] HERO 검색 + 캘린더 (기존 기능 보존: 아래 JS가 기존 #search와 연동) === -->
-<section class="hero">
-  <div class="hero-card">
-    <h1 class="hero-title">지훈이의 신나는 영어단어 학습 🦖</h1>
-    <form id="searchForm" class="search-bar" onsubmit="return false;">
-      <span class="search-icon" aria-hidden="true">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-          <path d="M21 21l-4.2-4.2m1.7-5.3a7 7 0 1 1-14 0 7 7 0 0 1 14 0z"
-                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-        </svg>
-      </span>
-      <input id="searchInput" type="search" autocomplete="off" placeholder="검색어를 입력해주세요" aria-label="단어 검색" />
-      <button class="search-submit" type="submit" aria-label="검색">검색</button>
-    </form>
+  <!-- CALENDAR -->
+  <h2 id="calLabel" class="section-h">2025년 9월</h2>
+  <div id="calendarContainer" class="calendar"></div>
+  <div class="cal-nav">
+    <button id="prevMonthBtn" aria-label="이전 달">◀︎</button>
+    <button id="nextMonthBtn" aria-label="다음 달">▶︎</button>
   </div>
-</section>
-<div id="calendarContainer" class="calendar"></div>
-<div class="cal-nav">
-  <button id="prevMonthBtn" aria-label="이전 달">◀︎</button>
-  <div id="calLabel" class="cal-label"></div>
-  <button id="nextMonthBtn" aria-label="다음 달">▶︎</button>
-</div>
 
-
-
-  <main>
+  <!-- CONTENT -->
+  <main class="container">
     <!-- 단일 단어 등록 -->
-      <div class="container">
     <section class="panel">
-      <h2>📥단일 단어 등록</h2>
+      <h2 class="section-h">📥 단일 단어 등록</h2>
       <form id="wordForm">
-        <div class="row">
-          <input id="word" type="text"placeholder="단어" required>
-          <input id="meaning" type="text"placeholder="뜻" required>
-          <input id="regDate" type="date">
+        <div class="row gap">
+          <input id="word" type="text" placeholder="단어" required />
+          <input id="meaning" type="text" placeholder="뜻" required />
+          <input id="regDate" type="date" />
           <button type="submit" class="accent">추가</button>
         </div>
         <div class="row">
-          <input id="example" type="text" placeholder="예문 (선택)">
+          <input id="example" type="text" placeholder="예문 (선택)" />
         </div>
       </form>
     </section>
 
     <!-- 대량 등록 -->
-      <section class="panel">
-          <h2>✏️대량 등록</h2>
-          <!-- 열기 버튼 -->
-          <button id="toggleBulk" class="accent">열기</button>
-          <button id="btnStats" class="accent">통계</button>
-
-          <!-- 숨겨진 입력창 -->
-          <div id="bulkSection" class="hidden">
-              <textarea id="bulkInput" placeholder="apple - 사과 | I like an apple."></textarea>
-              <input type="date" id="bulkDate">
-              <button id="bulkParse" class="ghost">미리보기</button>
-              <button id="bulkApply" class="accent">등록</button>
-              <span id="bulkSpinner" class="hidden">⏳</span>
-              <div id="bulkStatus"></div>
-              <ul id="bulkPreview"></ul>
-          </div>
-      </section>
-
-    <!-- 단어 카드 -->
     <section class="panel">
-      <h2>📊단어 카드</h2>
+      <h2 class="section-h">✏️ 대량 등록</h2>
+      <div class="tiles">
+        <button id="toggleBulk" class="tile">대량카드 등록</button>
+        <button id="btnStats" class="tile">통계</button>
+      </div>
+      <div id="bulkSection" class="hidden">
+        <textarea id="bulkInput" placeholder="apple - 사과 | I like an apple."></textarea>
+        <input type="date" id="bulkDate" />
+        <div class="row gap wrap">
+          <button id="bulkParse" class="ghost">미리보기</button>
+          <button id="bulkApply" class="accent">등록</button>
+          <span id="bulkSpinner" class="hidden">⏳</span>
+        </div>
+        <div id="bulkStatus" class="muted"></div>
+        <ul id="bulkPreview"></ul>
+      </div>
+    </section>
+
+    <!-- 단어 카드 & 퀴즈 바로가기 -->
+    <section class="panel">
+      <h2 class="section-h">📊 단어 카드</h2>
+      <div class="tiles">
+        <button id="openSingleAdd" class="tile sm">단일카드 등록</button>
+        <button id="openBulk" class="tile sm">대량카드 등록</button>
+        <button id="openMCQ" class="tile sm">객관식 Quiz</button>
+        <button id="openSAQ" class="tile sm">주관식 Quiz</button>
+      </div>
+
       <div class="row wrap gap">
-        <input id="filterDate" type="date">
+        <input id="filterDate" type="date" />
         <button id="loadByDate" class="accent">날짜 조회</button>
-        <input id="search" type="text" placeholder="검색(단어/뜻)">
-        <!--<button id="btnSearch" class="accent">검색</button>-->
-        <!--<select id="sort">
-            <option value="created_desc">최신 등록순</option>
-            <option value="alpha_asc">A-Z까지</option>
-            <option value="alpha_desc">Z-A까지</option>
-          </select>-->
-          <select id="quizMode">
-            <option value="en2ko">영어 ➝ 한국어</option>
-            <option value="ko2en">한국어 ➝ 영어</option>
-            <option value="cloze">빈칸 채우기</option>
-            <option value="en2ko_input">영어 ➝ 한국어:주관식</option>
-            <option value="ko2en_input">한국어 ➝ 영어:주관식</option>
-            <option value="cloze_input">빈칸 채우기:주관식</option>
-          </select>
-          <button id="btnQuiz" class="accent">퀴즈</button>
+        <input id="search" type="text" placeholder="검색(단어/뜻)" />
+        <select id="quizMode">
+          <option value="en2ko">영어 ➝ 한국어</option>
+          <option value="ko2en">한국어 ➝ 영어</option>
+          <option value="cloze">빈칸 채우기</option>
+          <option value="en2ko_input">영어 ➝ 한국어:주관식</option>
+          <option value="ko2en_input">한국어 ➝ 영어:주관식</option>
+          <option value="cloze_input">빈칸 채우기:주관식</option>
+        </select>
+        <button id="btnQuiz" class="accent">퀴즈</button>
+      </div>
+      <ul id="wordList"></ul>
+    </section>
+  </main>
 
-        </div>
-        <ul id="wordList"></ul>
-      </section>
-        </div>
-    </main>
+  <!-- 푸터 -->
+  <footer class="site-footer">© 2025. 지훈의 영어 APP</footer>
 
-    <footer>
-      <p>© 2025 JiHun English Word App.</p>
-    </footer>
-
-    <!-- 퀴즈 모달 -->
-  <div id="quizModal" class="modal hidden">
+  <!-- 퀴즈 모달 -->
+  <div id="quizModal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="qWord">
     <div class="modal-body">
       <div class="modal-head">
         <strong>퀴즈</strong>
@@ -157,7 +116,7 @@
 
       <!-- 주관식 입력 -->
       <div id="qInputWrap" class="hidden">
-        <input id="qInput" type="text" placeholder="정답 입력 (필기 가능)">
+        <input id="qInput" type="text" placeholder="정답 입력 (필기 가능)" />
         <button id="qSubmit" class="accent">제출</button>
       </div>
 
@@ -166,25 +125,6 @@
         <button id="qRestart" class="ghost sm">처음부터</button>
         <button id="qWrongOnly" class="ghost sm" disabled>오답만 다시</button>
       </div>
-    </div>
-  </div>
-
-  <!-- 통계 모달 -->
-  <div id="statsModal" class="modal hidden">
-    <div class="modal-body">
-      <div class="modal-head">
-        <strong>통계</strong>
-        <button id="statsClose" class="ghost sm">닫기</button>
-      </div>
-      <div>
-        <p>총 단어: <span id="stTotal">0</span></p>
-        <p>정답률: <span id="stAcc">0%</span></p>
-        <p>오늘 등록: <span id="stToday">0</span></p>
-      </div>
-      <h3>취약 단어 TOP10</h3>
-      <ul id="weakList"></ul>
-      <h3>최근 테스트</h3>
-      <ul id="recentList"></ul>
     </div>
   </div>
 </body>
