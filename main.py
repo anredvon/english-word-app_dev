@@ -76,8 +76,8 @@ def api_create_words_bulk():
     import datetime
     today_str = datetime.date.today().isoformat()
     for it in items:
-        w = (it.get("word") or "").strip()
-        m = (it.get("meaning") or "").strip()
+        w = (it.get("word") or "").trim()
+        m = (it.get("meaning") or "").trim()
         ex = (it.get("example") or "").strip()
         reg = (it.get("registered_on") or "").strip()[:10] or today_str
         if not w or not m:
