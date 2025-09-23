@@ -11,11 +11,20 @@ body{
 main{flex:1 0 auto}
 .sr-only{position:absolute!important;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,1,1);border:0}
 
-/* ===== Layout ===== */
+/* ===== Section Wrapper (베이지 라운딩 배경) ===== */
+.section-box{
+  background:#fdebd1;        /* 베이지 */
+  border-radius:24px;
+  padding:18px 16px;
+  margin:14px 12px;
+  box-shadow:0 6px 16px rgba(0,0,0,.06) inset;
+}
+
+/* ===== Standard containers/cards ===== */
 .container{max-width:960px;margin:0 auto;padding:0 16px 24px}
 .panel{
   background:#fff;border:1px solid #e9ecf1;border-radius:20px;
-  padding:18px;margin:16px 0;box-shadow:0 8px 18px rgba(0,0,0,.05)
+  padding:18px;margin:8px 0;box-shadow:0 8px 18px rgba(0,0,0,.05)
 }
 .section-h{font-size:22px;font-weight:800;margin:8px 4px 12px}
 
@@ -45,7 +54,7 @@ main{flex:1 0 auto}
 
 /* ===== Calendar ===== */
 .calendar{
-  margin:8px 16px 0;display:grid;grid-template-columns:repeat(7,1fr);
+  margin:8px 0;display:grid;grid-template-columns:repeat(7,1fr);
   gap:8px;text-align:center;font-size:14px
 }
 .calendar .weekday{font-weight:700;color:#8a8f98;padding:6px 0}
@@ -55,10 +64,10 @@ main{flex:1 0 auto}
 .calendar .day.marked{color:#fff;background:#2ecc71}
 .calendar .day.marked[data-level="2"]{background:#27ae60}
 .calendar .day.marked[data-level="3"]{background:#1e8449}
-.cal-nav{display:flex;gap:10px;justify-content:center;margin:10px 0 18px}
+.cal-nav{display:flex;gap:10px;justify-content:center;margin:10px 0 6px}
 .cal-nav button{border:1px solid #e3e6ec;background:#fff;border-radius:10px;padding:8px 12px;cursor:pointer}
 
-/* ===== Controls ===== */
+/* ===== Controls & Inputs ===== */
 .row{display:flex;align-items:center}
 .row.gap{gap:8px}
 .row.wrap{flex-wrap:wrap}
@@ -68,13 +77,16 @@ input[type="text"],input[type="date"],select,button,textarea{
 button{cursor:pointer}
 button.accent{background:#ff6a00;border:none;color:#fff}
 button.ghost{background:#f6f7fb}
+button.sm{padding:6px 10px;font-size:14px;border-radius:8px}
 
 /* ===== Word list ===== */
-#wordList{list-style:none;margin:12px 0 0;padding:0}
+#wordList{list-style:none;margin:0;padding:0}
 .word-card{
   background:#fff;border:1px solid #e7ebf1;border-radius:12px;
   padding:12px;margin-bottom:10px;box-shadow:0 4px 10px rgba(0,0,0,.04)
 }
+.word-card h3{margin:0 0 6px 0}
+.word-card .meta{display:flex;gap:10px;color:#6b7280;font-size:13px;margin:6px 0}
 
 /* ===== Modal ===== */
 .modal{position:fixed;inset:0;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;z-index:1000}
@@ -87,8 +99,17 @@ button.ghost{background:#f6f7fb}
 .choices .choice.wrong{background:#dc3545;color:#fff}
 .choices .choice.disabled{opacity:.6;pointer-events:none}
 
+/* ===== Sheet (모드 선택) ===== */
+.sheet{position:fixed;inset:0;background:rgba(0,0,0,.35);display:flex;align-items:flex-end;justify-content:center;z-index:1200}
+.sheet.hidden{display:none!important}
+.sheet-body{background:#fff;width:100%;max-width:560px;border-radius:16px 16px 0 0;padding:16px}
+.sheet-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:8px}
+.sheet-grid button{padding:10px 12px;border-radius:10px;border:1px solid #e3e6ec;background:#fafafa}
+
 /* ===== Footer ===== */
 .site-footer{
   flex-shrink:0;text-align:center;padding:24px 0;font-size:14px;
   color:#6f7480;border-top:1px solid #eceff5;background:#f8f9fb
 }
+.hidden{display:none!important}
+.muted{color:#6f7480;font-size:13px}
