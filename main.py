@@ -76,13 +76,12 @@ def api_create_words_bulk():
     import datetime
     today_str = datetime.date.today().isoformat()
     for it in items:
-        w = (it.get("word") or "").strip()
+        w = (it.get("word") or "").strip()     # trim → strip 보정
         m = (it.get("meaning") or "").strip()
         ex = (it.get("example") or "").strip()
         reg = (it.get("registered_on") or "").strip()[:10] or today_str
         if not w or not m:
             continue
-        # created_at에 저장
         rows.append((w, m, ex, 1, reg))
 
     if not rows:
@@ -103,7 +102,6 @@ def api_list_words():
     q_date = request.args.get("date")
     q = (request.args.get("q") or "").strip()
 
-    # 프론트가 registered_on 필드를 기대하므로 별칭으로 내려줌
     sql = """
       SELECT id, word, meaning, example, correct, wrong, last_tested,
              DATE(created_at) AS registered_on
@@ -202,7 +200,7 @@ def api_delete_word(wid):
         conn.commit()
     return jsonify({"ok": True})
 
-# 8) 달력용 등록일/건수 API (created_at 기준)
+# 8) 달력용 등록일/건수 API
 @app.get("/api/word-dates")
 def api_word_dates():
     sql = """
@@ -216,7 +214,6 @@ def api_word_dates():
         cur.execute(sql)
         rows = cur.fetchall()
 
-    # date 객체와 str 혼재 대비
     def _to_str(v):
         try:
             return v.isoformat()
