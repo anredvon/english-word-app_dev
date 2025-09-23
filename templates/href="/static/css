@@ -4,7 +4,8 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
   <title>지훈이의 신나는 영어단어 학습</title>
-  <link rel="stylesheet" href="/static/style.css" />
+  <link rel="stylesheet" href="/static/style.css?v=20250923a" />
+  <script defer src="/static/app.js?v=20250923a"></script>
   <script defer src="/static/app.js"></script>
 </head>
 <body>
