@@ -393,10 +393,15 @@ function scrollToList(){
 
 /* ====== 최초 로드 ====== */
 (async function init(){
-  await loadWords({});
-  await loadDates();
-  const t = new Date();
-  calY = t.getFullYear(); calM = t.getMonth();
-  renderCal(calY,calM);
-  bindCalNav();
+  try {
+    await loadWords({});            // 목록 실패해도 아래는 반드시 진행
+  } catch (e) {
+    console.warn('[init] loadWords failed:', e);
+  } finally {
+    try { await loadDates(); } catch(e){ console.warn('[init] loadDates failed:', e); }
+    const t = new Date();
+    calY = t.getFullYear(); calM = t.getMonth();
+    renderCal(calY,calM);          // ← 달력은 무조건 렌더
+    bindCalNav();
+  }
 })();
