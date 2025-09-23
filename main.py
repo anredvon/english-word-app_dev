@@ -134,10 +134,6 @@ def api_words_create():
     if not word or not meaning:
         return jsonify({"ok": False, "error": "word/meaning required"}), 400
 
-    if not date_str:
-        # today()는 DB의 DEFAULT(curdate())가 채우므로 비워도 됨
-        date_str = None
-
     with conn() as c:
         cur = c.cursor()
         if date_str:
@@ -250,25 +246,3 @@ def _all_err(e):
 # -------------------------------------------------------
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=8080, debug=True)
-
-
-@app.route("/api/word-dates")
-def word_dates():
-    conn = get_db_connection()
-    cursor = conn.cursor(dictionary=True)
-
-    # 날짜별 단어 등록 건수 집계
-    cursor.execute("""
-        SELECT DATE(created_at) as d, COUNT(*) as c
-        FROM words
-        GROUP BY DATE(created_at)
-    """)
-    rows = cursor.fetchall()
-
-    conn.close()
-
-    dates = [row['d'].strftime("%Y-%m-%d") for row in rows if row['d']]
-    byCount = {row['d'].strftime("%Y-%m-%d"): row['c'] for row in rows if row['d']}
-
-    return jsonify({"dates": dates, "byCount": byCount})
-
