@@ -1,7 +1,7 @@
 import os
 from contextlib import contextmanager
 from flask import Flask, render_template, request, jsonify
-import pymysql
+import pymysql 
 
 # -------------------------------------------------------
 # Flask
