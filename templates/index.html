@@ -15,6 +15,7 @@
         <h1 class="hero-title">지훈이의 신나는<br />영어단어 학습....🦖</h1>
         <span class="heart-badge" aria-hidden="true">❤</span>
       </div>
+      <!-- 전역 검색 -->
       <form id="searchForm" class="search-bar" onsubmit="return false;">
         <span class="search-icon" aria-hidden="true">🔎</span>
         <input id="searchInput" type="search" placeholder="검색어를 입력해주세요" aria-label="단어 검색" />
@@ -23,17 +24,29 @@
     </div>
   </section>
 
-  <!-- CALENDAR -->
-  <h2 id="calLabel" class="section-h">2025년 9월</h2>
-  <div id="calendarContainer" class="calendar"></div>
-  <div class="cal-nav">
-    <button id="prevMonthBtn" aria-label="이전 달">◀︎</button>
-    <button id="nextMonthBtn" aria-label="다음 달">▶︎</button>
+  <!-- CALENDAR SECTION -->
+  <div class="section-box">
+    <h2 id="calLabel" class="section-h">달력</h2>
+    <div id="calendarContainer" class="calendar"></div>
+    <div class="cal-nav">
+      <button id="prevMonthBtn" aria-label="이전 달">◀︎</button>
+      <button id="nextMonthBtn" aria-label="다음 달">▶︎</button>
+    </div>
   </div>
 
-  <!-- CONTENT -->
-  <main class="container">
-    <!-- 단일 단어 등록 -->
+  <!-- MENU SECTION -->
+  <div class="section-box">
+    <h2 class="section-h">단어카드 등록 / Quiz</h2>
+    <div class="tiles">
+      <button id="openSingleAdd" class="tile sm">단일카드 등록</button>
+      <button id="openBulk" class="tile sm">대량카드 등록</button>
+      <button id="openMCQ" class="tile sm">객관식 Quiz</button>
+      <button id="openSAQ" class="tile sm">주관식 Quiz</button>
+    </div>
+  </div>
+
+  <!-- SINGLE ADD PANEL (토글 오픈) -->
+  <div class="section-box hidden" id="singlePanel">
     <section class="panel">
       <h2 class="section-h">📥 단일 단어 등록</h2>
       <form id="wordForm">
@@ -48,59 +61,38 @@
         </div>
       </form>
     </section>
+  </div>
 
-    <!-- 대량 등록 -->
+  <!-- BULK ADD PANEL (토글 오픈) -->
+  <div class="section-box hidden" id="bulkPanel">
     <section class="panel">
       <h2 class="section-h">✏️ 대량 등록</h2>
-      <div class="tiles">
-        <button id="toggleBulk" class="tile">대량카드 등록</button>
-        <button id="btnStats" class="tile">통계</button>
-      </div>
-      <div id="bulkSection" class="hidden">
-        <textarea id="bulkInput" placeholder="apple - 사과 | I like an apple."></textarea>
-        <input type="date" id="bulkDate" />
-        <div class="row gap wrap">
+      <div class="row gap wrap">
+        <textarea id="bulkInput" placeholder="apple - 사과 | I like an apple." style="width:100%;min-height:120px;"></textarea>
+        <div class="row gap">
+          <input type="date" id="bulkDate" />
           <button id="bulkParse" class="ghost">미리보기</button>
-          <button id="bulkApply" class="accent">등록</button>
+          <button id="bulkApply" class="accent" disabled>등록</button>
           <span id="bulkSpinner" class="hidden">⏳</span>
         </div>
-        <div id="bulkStatus" class="muted"></div>
-        <ul id="bulkPreview"></ul>
       </div>
+      <div id="bulkStatus" class="muted"></div>
+      <ul id="bulkPreview"></ul>
     </section>
+  </div>
 
-    <!-- 단어 카드 & 퀴즈 바로가기 -->
+  <!-- WORD LIST SECTION -->
+  <div class="section-box">
     <section class="panel">
       <h2 class="section-h">📊 단어 카드</h2>
-      <div class="tiles">
-        <button id="openSingleAdd" class="tile sm">단일카드 등록</button>
-        <button id="openBulk" class="tile sm">대량카드 등록</button>
-        <button id="openMCQ" class="tile sm">객관식 Quiz</button>
-        <button id="openSAQ" class="tile sm">주관식 Quiz</button>
-      </div>
-
-      <div class="row wrap gap">
-        <input id="filterDate" type="date" />
-        <button id="loadByDate" class="accent">날짜 조회</button>
-        <input id="search" type="text" placeholder="검색(단어/뜻)" />
-        <select id="quizMode">
-          <option value="en2ko">영어 ➝ 한국어</option>
-          <option value="ko2en">한국어 ➝ 영어</option>
-          <option value="cloze">빈칸 채우기</option>
-          <option value="en2ko_input">영어 ➝ 한국어:주관식</option>
-          <option value="ko2en_input">한국어 ➝ 영어:주관식</option>
-          <option value="cloze_input">빈칸 채우기:주관식</option>
-        </select>
-        <button id="btnQuiz" class="accent">퀴즈</button>
-      </div>
       <ul id="wordList"></ul>
     </section>
-  </main>
+  </div>
 
   <!-- 푸터 -->
   <footer class="site-footer">© 2025. 지훈의 영어 APP</footer>
 
-  <!-- 퀴즈 모달 -->
+  <!-- QUIZ MODAL -->
   <div id="quizModal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="qWord">
     <div class="modal-body">
       <div class="modal-head">
@@ -125,6 +117,15 @@
         <button id="qRestart" class="ghost sm">처음부터</button>
         <button id="qWrongOnly" class="ghost sm" disabled>오답만 다시</button>
       </div>
+    </div>
+  </div>
+
+  <!-- QUIZ MODE SHEET -->
+  <div id="modeSheet" class="sheet hidden">
+    <div class="sheet-body">
+      <h3 id="modeTitle">모드 선택</h3>
+      <div id="modeButtons" class="sheet-grid"></div>
+      <button id="modeCancel" class="ghost" style="margin-top:10px">닫기</button>
     </div>
   </div>
 </body>
