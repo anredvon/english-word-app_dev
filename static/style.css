@@ -20,7 +20,7 @@ main{flex:1 0 auto}
   box-shadow:0 6px 16px rgba(0,0,0,.06) inset;
 }
 
-/* ===== Standard containers/cards ===== */
+/* ===== Layout / Panels ===== */
 .container{max-width:960px;margin:0 auto;padding:0 16px 24px}
 .panel{
   background:#fff;border:1px solid #e9ecf1;border-radius:20px;
@@ -55,7 +55,8 @@ main{flex:1 0 auto}
 /* ===== Calendar ===== */
 .calendar{
   margin:8px 0;display:grid;grid-template-columns:repeat(7,1fr);
-  gap:8px;text-align:center;font-size:14px
+  gap:8px;text-align:center;font-size:14px;
+  width:100%; min-height:220px;        /* 가시성 보강 */
 }
 .calendar .weekday{font-weight:700;color:#8a8f98;padding:6px 0}
 .calendar .day{padding:10px 6px;border-radius:10px;min-height:44px;background:#f5f7fa;position:relative}
@@ -99,7 +100,7 @@ button.sm{padding:6px 10px;font-size:14px;border-radius:8px}
 .choices .choice.wrong{background:#dc3545;color:#fff}
 .choices .choice.disabled{opacity:.6;pointer-events:none}
 
-/* ===== Sheet (모드 선택) ===== */
+/* ===== Sheet (퀴즈 모드 선택) ===== */
 .sheet{position:fixed;inset:0;background:rgba(0,0,0,.35);display:flex;align-items:flex-end;justify-content:center;z-index:1200}
 .sheet.hidden{display:none!important}
 .sheet-body{background:#fff;width:100%;max-width:560px;border-radius:16px 16px 0 0;padding:16px}
@@ -111,5 +112,7 @@ button.sm{padding:6px 10px;font-size:14px;border-radius:8px}
   flex-shrink:0;text-align:center;padding:24px 0;font-size:14px;
   color:#6f7480;border-top:1px solid #eceff5;background:#f8f9fb
 }
+
+/* helpers */
 .hidden{display:none!important}
 .muted{color:#6f7480;font-size:13px}
