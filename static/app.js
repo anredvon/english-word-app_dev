@@ -1,15 +1,17 @@
-/* ====== 공통 유틸 ====== */
+/* ===================== 공통 유틸 ===================== */
 function $(id){ return document.getElementById(id); }
 function esc(s){ return String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
-function shuffle(a){ for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]} return a; }
+function shuffle(a){ for (let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];} return a; }
 function today(){ return new Date().toISOString().slice(0,10); }
 async function jget(url){ const r=await fetch(url,{cache:"no-store"}); if(!r.ok) throw new Error(await r.text()); return r.json(); }
 async function jpost(url, body){ const r=await fetch(url,{method:"POST",headers:{ "Content-Type":"application/json" }, body:JSON.stringify(body)}); if(!r.ok) throw new Error(await r.text()); return r.json(); }
 
-/* ====== 엘리먼트 ====== */
-const listEl = $("wordList");
+/* ===================== 엘리먼트(현재 UI와 1:1 매칭) ===================== */
+// 검색
+const searchForm = $("searchForm");
+const searchInput = $("searchInput");
 
-/* 단일 등록 */
+// 단일 등록 패널
 const singlePanel = $("singlePanel");
 const wordForm = $("wordForm");
 const wordEl = $("word");
@@ -17,7 +19,7 @@ const meaningEl = $("meaning");
 const exampleEl = $("example");
 const regDateEl = $("regDate");
 
-/* 대량 등록 */
+// 대량 등록 패널
 const bulkPanel = $("bulkPanel");
 const bulkInput = $("bulkInput");
 const bulkDateEl = $("bulkDate");
@@ -27,33 +29,50 @@ const bulkPreview = $("bulkPreview");
 const bulkStatus = $("bulkStatus");
 const bulkSpinner = $("bulkSpinner");
 
-/* 메뉴 버튼 */
+// 메뉴 버튼
 const openSingleAdd = $("openSingleAdd");
 const openBulk = $("openBulk");
 const openMCQ = $("openMCQ");
 const openSAQ = $("openSAQ");
 
-/* 퀴즈 모달 */
-const quizModal=$("quizModal"), quizClose=$("quizClose"), qCount=$("qCount"), qScore=$("qScore"), qWord=$("qWord"), qChoices=$("qChoices"), qNext=$("qNext"), qRestart=$("qRestart");
-const qInputWrap=$("qInputWrap"), qInput=$("qInput"), qSubmit=$("qSubmit"), qWrongOnly=$("qWrongOnly");
+// 목록
+const listEl = $("wordList");
 
-/* 모드 선택 시트 */
-const modeSheet=$("modeSheet"), modeTitle=$("modeTitle"), modeButtons=$("modeButtons"), modeCancel=$("modeCancel");
+// 퀴즈 모달
+const quizModal=$("quizModal"), quizClose=$("quizClose"),
+      qCount=$("qCount"), qScore=$("qScore"), qWord=$("qWord"),
+      qChoices=$("qChoices"), qNext=$("qNext"), qRestart=$("qRestart"),
+      qWrongOnly=$("qWrongOnly"), qInputWrap=$("qInputWrap"),
+      qInput=$("qInput"), qSubmit=$("qSubmit");
 
-/* ====== 상태 ====== */
-let words=[];                 // 현재 리스트
-let currentFilterDate="";     // 달력 클릭 필터
-let bulkParsed=[];
-let regSet = new Set();       // 달력 마킹
-let regCount = {};
-let calY, calM;
-let quizState = { pool:[], idx:0, score:0, wrongIds:[], mode:"en2ko" };
+// 모드 시트
+const modeSheet=$("modeSheet"), modeTitle=$("modeTitle"),
+      modeButtons=$("modeButtons"), modeCancel=$("modeCancel");
 
-/* ====== 초기 ====== */
-if (regDateEl) regDateEl.value = today();
-if (bulkDateEl) bulkDateEl.value = today();
+/* ===================== 상태 ===================== */
+let words=[];                      // 현재 리스트
+let currentFilterDate="";          // 달력 클릭 시 선택된 날짜(YYYY-MM-DD)
+let regSet = new Set();            // 달력 마킹 날짜 집합
+let regCount = {};                 // 날짜별 단어 수
+let calY, calM;                    // 달력 년/월
+let bulkParsed=[];                 // 대량 파싱 결과
 
-/* ====== 메뉴 토글 ====== */
+const WEEK = ['일','월','화','수','목','금','토'];
+
+let quizState = {
+  pool: [], idx: 0, score: 0, wrongIds: [], mode: "en2ko"
+};
+
+/* ===================== 공통 동작 ===================== */
+// 전역 검색
+searchForm?.addEventListener("submit", async (e)=>{
+  e.preventDefault();
+  const q = (searchInput?.value || "").trim();
+  await loadWords({ q });
+  scrollToList();
+});
+
+// 메뉴 토글
 openSingleAdd?.addEventListener("click", ()=>{
   singlePanel.classList.toggle("hidden");
   bulkPanel.classList.add("hidden");
@@ -63,37 +82,34 @@ openBulk?.addEventListener("click", ()=>{
   singlePanel.classList.add("hidden");
 });
 
-/* ====== 전역 검색(HERO) ====== */
-$("searchForm")?.addEventListener("submit", async (e)=>{
-  e.preventDefault();
-  const q = ($("searchInput")?.value || "").trim();
-  await loadWords({ q });
-  scrollToList();
-});
+// 기본 날짜 세팅
+if (regDateEl) regDateEl.value = today();
+if (bulkDateEl) bulkDateEl.value = today();
 
-/* ====== 목록 로드/렌더 ====== */
+/* ===================== 목록 로드/렌더 ===================== */
 async function loadWords({date, q}={}){
-  const params = new URLSearchParams();
-  if(date) params.set("date", date);
-  if(q) params.set("q", q);
-  const url = "/api/words" + (params.toString()?`?${params.toString()}`:"");
+  const p = new URLSearchParams();
+  if(date) p.set("date", date);
+  if(q) p.set("q", q);
+  const url = "/api/words" + (p.toString()?`?${p.toString()}`:"");
   words = await jget(url);
-  render();
+  renderList();
 }
 
 function speakWord(word, voice="female"){
-  if(!("speechSynthesis" in window)) { alert("이 브라우저는 음성합성을 지원하지 않아요."); return; }
+  if(!("speechSynthesis" in window)){ alert("브라우저가 음성합성을 지원하지 않아요."); return; }
   const u = new SpeechSynthesisUtterance(word);
-  u.lang = "en-US"; u.rate = 0.95; u.pitch = voice==="male"?0.8:1.2;
+  u.lang="en-US"; u.rate=0.95; u.pitch = voice==="male"?0.85:1.15;
   window.speechSynthesis.cancel();
   window.speechSynthesis.speak(u);
 }
 
-function render(){
+function renderList(){
   listEl.innerHTML = "";
   words.forEach(it=>{
     const total=(it.correct||0)+(it.wrong||0);
     const acc = total? Math.round((it.correct||0)*100/total):0;
+
     const li = document.createElement("li");
     li.className="word-card";
     li.innerHTML = `
@@ -116,14 +132,18 @@ function render(){
     });
     li.querySelector(".btn-del")?.addEventListener("click", async (e)=>{
       if(!confirm("정말 삭제할까요?")) return;
-      await fetch(`/api/words/${e.currentTarget.getAttribute("data-id")}`, { method: "DELETE" });
+      await fetch(`/api/words/${e.currentTarget.getAttribute("data-id")}`, { method:"DELETE" });
       await loadWords({date: currentFilterDate});
       await loadDates(); renderCal(calY,calM);
     });
   });
 }
 
-/* ====== 단일 등록 ====== */
+function scrollToList(){
+  listEl?.scrollIntoView({ behavior:"smooth", block:"start" });
+}
+
+/* ===================== 단일 등록 ===================== */
 wordForm?.addEventListener("submit", async (e)=>{
   e.preventDefault();
   const payload = {
@@ -142,32 +162,41 @@ wordForm?.addEventListener("submit", async (e)=>{
   await loadDates(); renderCal(calY,calM);
 });
 
-/* ====== 대량 등록 ====== */
-function parseBulkText(text){
-  return text.split(/\r?\n/).map(s=>s.trim()).filter(Boolean).map(row=>{
-    const [left, example=""] = row.split("|").map(s=>s.trim());
-    const m = left.split(/[-:]/);
-    if(m.length<2) return null;
-    return {word:m[0].trim(), meaning:m.slice(1).join("-").trim(), example};
-  }).filter(Boolean);
+/* ===================== 대량 등록 ===================== */
+function parseBulk(text){
+  return text
+    .split(/\r?\n/)
+    .map(s=>s.trim())
+    .filter(Boolean)
+    .map(row=>{
+      // "apple - 사과 | I like an apple."
+      const [left, example=""] = row.split("|").map(s=>s.trim());
+      const m = left.split(/[-:]/);                   // apple - 사과
+      if(m.length<2) return null;
+      return { word:m[0].trim(), meaning:m.slice(1).join("-").trim(), example };
+    })
+    .filter(Boolean);
 }
+
 function renderBulkPreview(list){
-  bulkPreview.innerHTML="";
+  bulkPreview.innerHTML = "";
   list.forEach(it=>{
-    const li = document.createElement("li");
+    const li=document.createElement("li");
     li.className="weak-item";
     li.innerHTML = `<div><strong>${esc(it.word)}</strong> <span class="badge">${esc(it.meaning)}</span></div>${it.example?`<div>${esc(it.example)}</div>`:""}`;
     bulkPreview.appendChild(li);
   });
   bulkApplyBtn.disabled = list.length===0;
 }
+
 bulkParseBtn?.addEventListener("click", ()=>{
-  bulkParsed = parseBulkText(bulkInput.value);
+  bulkParsed = parseBulk(bulkInput.value);
   renderBulkPreview(bulkParsed);
   bulkStatus.textContent = bulkParsed.length ? `인식된 항목: ${bulkParsed.length}개` : `항목이 없습니다.`;
 });
+
 bulkApplyBtn?.addEventListener("click", async ()=>{
-  if (!bulkParsed.length) return;
+  if(!bulkParsed.length) return;
   const d = bulkDateEl?.value || today();
   bulkApplyBtn.disabled = true; bulkSpinner.classList.remove("hidden");
   try{
@@ -181,29 +210,28 @@ bulkApplyBtn?.addEventListener("click", async ()=>{
   }
 });
 
-/* ====== 캘린더 (안전 초기화 + 강제 렌더) ====== */
-const WEEK = ['일','월','화','수','목','금','토'];
-
+/* ===================== 달력 ===================== */
 async function loadDates(){
   try{
-    const j = await jget('/api/word-dates');
+    const j = await jget('/api/word-dates');   // {dates:[...], byCount:{...}}
     regSet = new Set(j.dates || []);
     regCount = j.byCount || {};
   }catch(e){
+    console.warn("[calendar] loadDates failed:", e);
     regSet = new Set(); regCount = {};
-    console.warn('[calendar] loadDates failed:', e);
   }
 }
 
 function renderCal(y,m){
   const el = $("calendarContainer");
-  if(!el){ console.warn('[calendar] container not found'); return; }
-  el.innerHTML = '';
+  if(!el) return;
+  el.innerHTML = "";
 
   // 요일 헤더
   WEEK.forEach(w=>{
-    const h = document.createElement('div');
-    h.className = 'weekday'; h.textContent = w; el.appendChild(h);
+    const h=document.createElement("div");
+    h.className="weekday"; h.textContent=w;
+    el.appendChild(h);
   });
 
   const first = new Date(y,m,1);
@@ -211,8 +239,8 @@ function renderCal(y,m){
   const days  = new Date(y,m+1,0).getDate();
 
   for(let i=0;i<pad;i++){
-    const d=document.createElement('div');
-    d.className='day empty';
+    const d=document.createElement("div");
+    d.className="day empty";
     el.appendChild(d);
   }
   for(let d=1; d<=days; d++){
@@ -220,39 +248,42 @@ function renderCal(y,m){
     const dd = String(d).padStart(2,'0');
     const key = `${y}-${mm}-${dd}`;
 
-    const cell = document.createElement('div');
-    cell.className='day';
+    const cell = document.createElement("div");
+    cell.className="day";
     cell.innerHTML = `<span class="num">${d}</span>`;
 
     if(regSet.has(key)){
-      cell.classList.add('marked');
+      cell.classList.add("marked");
       const c = regCount[key] || 1;
       const lv = c>=6?3:(c>=3?2:1);
       cell.dataset.level = String(lv);
     }
-    cell.addEventListener('click', async ()=>{
+    cell.addEventListener("click", async ()=>{
       currentFilterDate = key;
-      await loadWords({date: key});
+      await loadWords({ date:key });
       scrollToList();
     });
+
     el.appendChild(cell);
   }
+
   const lbl = $("calLabel");
   if(lbl) lbl.textContent = `${y}년 ${m+1}월`;
 }
+
 function bindCalNav(){
-  $("prevMonthBtn")?.addEventListener('click', ()=>{
+  $("prevMonthBtn")?.addEventListener("click", ()=>{
     calM -= 1; if(calM<0){ calM=11; calY-=1; }
     renderCal(calY,calM);
   });
-  $("nextMonthBtn")?.addEventListener('click', ()=>{
+  $("nextMonthBtn")?.addEventListener("click", ()=>{
     calM += 1; if(calM>11){ calM=0; calY+=1; }
     renderCal(calY,calM);
   });
 }
 
-/* ====== 퀴즈: 모드 선택 시트 ====== */
-function openModeSheet(type){ // type: 'mcq' | 'saq'
+/* ===================== 퀴즈(모드 선택 → 진행) ===================== */
+function openModeSheet(type){
   modeTitle.textContent = (type==='mcq') ? '객관식 모드 선택' : '주관식 모드 선택';
   modeButtons.innerHTML = '';
   const modes = (type==='mcq')
@@ -267,20 +298,18 @@ function openModeSheet(type){ // type: 'mcq' | 'saq'
   });
   modeSheet.classList.remove('hidden');
 }
-modeCancel.addEventListener('click', ()=> modeSheet.classList.add('hidden'));
+modeCancel?.addEventListener('click', ()=> modeSheet.classList.add('hidden'));
 openMCQ?.addEventListener('click', ()=> openModeSheet('mcq'));
 openSAQ?.addEventListener('click', ()=> openModeSheet('saq'));
 
-/* ====== 퀴즈 로직 ====== */
 async function startQuiz(mode){
   modeSheet.classList.add('hidden');
   const d = currentFilterDate || '';
   const pool = await jget(`/api/quiz${d?`?date=${d}`:""}`);
   if(pool.length<1){ alert("출제할 단어가 없습니다."); return; }
   quizState.pool = shuffle(pool).slice(0, 100);
-  quizState.idx=0; quizState.score=0; quizState.wrongIds=[];
-  quizState.mode = mode;
-  qWrongOnly.disabled = true;
+  quizState.idx=0; quizState.score=0; quizState.wrongIds=[]; quizState.mode=mode;
+  qWrongOnly.disabled=true;
   quizModal.classList.remove("hidden");
   nextQuestion();
 }
@@ -291,8 +320,7 @@ qNext?.addEventListener("click", ()=>{ quizState.idx++; nextQuestion(); });
 qWrongOnly?.addEventListener("click", ()=>{
   if(!quizState.wrongIds.length) return;
   quizState.pool = shuffle(words.filter(w=> quizState.wrongIds.includes(w.id)));
-  quizState.idx=0; quizState.score=0; quizState.wrongIds = [];
-  qWrongOnly.disabled = true;
+  quizState.idx=0; quizState.score=0; quizState.wrongIds=[]; qWrongOnly.disabled=true;
   nextQuestion();
 });
 
@@ -301,67 +329,47 @@ function addChoice(label, isCorrect){
   div.className="choice"; div.textContent=label;
   div.addEventListener("click", async ()=>{
     [...qChoices.children].forEach(el=>el.classList.add("disabled"));
-    if(isCorrect){ div.classList.add("correct"); quizState.score++; await jpost(`/api/words/${quizState.pool[quizState.idx].id}/result`, {correct:true}); }
-    else{ div.classList.add("wrong"); quizState.wrongIds.push(quizState.pool[quizState.idx].id); await jpost(`/api/words/${quizState.pool[quizState.idx].id}/result`, {correct:false}); }
+    const cur = quizState.pool[quizState.idx];
+    if(isCorrect){ div.classList.add("correct"); quizState.score++; await jpost(`/api/words/${cur.id}/result`, {correct:true}); }
+    else{ div.classList.add("wrong"); quizState.wrongIds.push(cur.id); await jpost(`/api/words/${cur.id}/result`, {correct:false}); }
     qScore.textContent = `점수 ${quizState.score}`; qNext.disabled=false;
   });
   qChoices.appendChild(div);
 }
 
 function nextQuestion(){
-  qChoices.innerHTML = "";
-  qNext.disabled = true;
-  qInputWrap.classList.add("hidden");
-
+  qChoices.innerHTML=""; qNext.disabled=true; qInputWrap.classList.add("hidden");
   const total = quizState.pool.length;
   if(quizState.idx >= total){
     qWord.textContent = `완료! 최종 점수: ${quizState.score} / ${total}`;
     qCount.textContent = `${total}/${total}`;
-    qWrongOnly.disabled = quizState.wrongIds.length === 0;
+    qWrongOnly.disabled = quizState.wrongIds.length===0;
     return;
   }
-
-  const correct = quizState.pool[quizState.idx];
+  const cur = quizState.pool[quizState.idx];
   const mode = quizState.mode;
-  const others = shuffle(quizState.pool.filter(w => w.id !== correct.id)).slice(0,3);
-  let options = [];
+  const others = shuffle(quizState.pool.filter(w=>w.id!==cur.id)).slice(0,3);
 
-  if(mode === "en2ko"){ // 영어 → 한국어 (선택형)
-    qWord.textContent = correct.word;
-    options = shuffle([correct, ...others]);
-    options.forEach(opt => addChoice(opt.meaning, opt.id === correct.id));
-  }
-  else if(mode === "ko2en"){ // 한국어 → 영어 (선택형)
-    qWord.textContent = correct.meaning;
-    options = shuffle([correct, ...others]);
-    options.forEach(opt => addChoice(opt.word, opt.id === correct.id));
-  }
-  else if(mode === "cloze"){ // 빈칸 채우기 (선택형)
-    const sentence = (correct.example || `${correct.word} is ...`)
-      .replace(new RegExp(correct.word, "ig"), "_____");
+  if(mode==="en2ko"){
+    qWord.textContent = cur.word;
+    shuffle([cur,...others]).forEach(opt=> addChoice(opt.meaning, opt.id===cur.id));
+  }else if(mode==="ko2en"){
+    qWord.textContent = cur.meaning;
+    shuffle([cur,...others]).forEach(opt=> addChoice(opt.word, opt.id===cur.id));
+  }else if(mode==="cloze"){
+    const sentence = (cur.example || `${cur.word} is ...`).replace(new RegExp(cur.word,"ig"),"_____");
     qWord.textContent = sentence;
-    options = shuffle([correct, ...others]);
-    options.forEach(opt => addChoice(opt.word, opt.id === correct.id));
-  }
-  else if(mode === "en2ko_input"){   // 영어 → 한국어 (주관식)
-    qWord.textContent = correct.word;
-    qInputWrap.classList.remove("hidden");
-    qInput.placeholder = "뜻 입력";
-    qSubmit.onclick = ()=>checkInputAnswer(correct.meaning, correct.id);
-  }
-  else if(mode === "ko2en_input"){   // 한국어 → 영어 (주관식)
-    qWord.textContent = correct.meaning;
-    qInputWrap.classList.remove("hidden");
-    qInput.placeholder = "단어 입력(영어)";
-    qSubmit.onclick = ()=>checkInputAnswer(correct.word, correct.id);
-  }
-  else if(mode === "cloze_input"){   // 빈칸 채우기 (주관식)
-    const sentence = (correct.example || `${correct.word} is ...`)
-      .replace(new RegExp(correct.word, "ig"), "_____");
-    qWord.textContent = sentence;
-    qInputWrap.classList.remove("hidden");
-    qInput.placeholder = "정답 단어(영어)";
-    qSubmit.onclick = ()=>checkInputAnswer(correct.word, correct.id);
+    shuffle([cur,...others]).forEach(opt=> addChoice(opt.word, opt.id===cur.id));
+  }else if(mode==="en2ko_input"){
+    qWord.textContent = cur.word; qInputWrap.classList.remove("hidden");
+    qInput.placeholder="뜻 입력"; qSubmit.onclick=()=>checkInputAnswer(cur.meaning, cur.id);
+  }else if(mode==="ko2en_input"){
+    qWord.textContent = cur.meaning; qInputWrap.classList.remove("hidden");
+    qInput.placeholder="단어 입력(영어)"; qSubmit.onclick=()=>checkInputAnswer(cur.word, cur.id);
+  }else if(mode==="cloze_input"){
+    const sentence = (cur.example || `${cur.word} is ...`).replace(new RegExp(cur.word,"ig"),"_____");
+    qWord.textContent = sentence; qInputWrap.classList.remove("hidden");
+    qInput.placeholder="정답 단어(영어)"; qSubmit.onclick=()=>checkInputAnswer(cur.word, cur.id);
   }
 
   qCount.textContent = `${quizState.idx+1}/${total}`;
@@ -369,39 +377,24 @@ function nextQuestion(){
 }
 
 function checkInputAnswer(answer, wid){
-  const user = (qInput.value || "").trim().toLowerCase();
-  const target = (answer||"").trim().toLowerCase();
+  const user=(qInput.value||"").trim().toLowerCase();
+  const target=(answer||"").trim().toLowerCase();
   qInput.value="";
-
-  if(user === target){
-    alert("정답!");
-    quizState.score++;
-    jpost(`/api/words/${wid}/result`, {correct: true});
-  } else {
-    alert(`오답! 정답: ${answer}`);
-    quizState.wrongIds.push(wid);
-    jpost(`/api/words/${wid}/result`, {correct: false});
-  }
-  qScore.textContent = `점수 ${quizState.score}`;
-  qNext.disabled=false;
+  if(user===target){ alert("정답!"); quizState.score++; jpost(`/api/words/${wid}/result`, {correct:true}); }
+  else{ alert(`오답! 정답: ${answer}`); quizState.wrongIds.push(wid); jpost(`/api/words/${wid}/result`, {correct:false}); }
+  qScore.textContent = `점수 ${quizState.score}`; qNext.disabled=false;
 }
 
-/* ====== 스크롤 유틸 ====== */
-function scrollToList(){
-  listEl?.scrollIntoView({behavior:'smooth', block:'start'});
-}
-
-/* ====== 최초 로드 ====== */
+/* ===================== 최초 초기화 ===================== */
 (async function init(){
-  try {
-    await loadWords({});            // 목록 실패해도 아래는 반드시 진행
-  } catch (e) {
-    console.warn('[init] loadWords failed:', e);
-  } finally {
-    try { await loadDates(); } catch(e){ console.warn('[init] loadDates failed:', e); }
-    const t = new Date();
-    calY = t.getFullYear(); calM = t.getMonth();
-    renderCal(calY,calM);          // ← 달력은 무조건 렌더
+  try{
+    await loadWords({});
+  }catch(e){
+    console.warn("[init] loadWords failed:", e);
+  }finally{
+    try{ await loadDates(); }catch(e){ console.warn("[init] loadDates failed:", e); }
+    const t=new Date(); calY=t.getFullYear(); calM=t.getMonth();
+    renderCal(calY,calM);
     bindCalNav();
   }
 })();
