@@ -67,6 +67,8 @@ main{flex:1 0 auto}
 .calendar .day.marked[data-level="3"]{background:#1e8449}
 .cal-nav{display:flex;gap:10px;justify-content:center;margin:10px 0 6px}
 .cal-nav button{border:1px solid #e3e6ec;background:#fff;border-radius:10px;padding:8px 12px;cursor:pointer}
+.calendar{ width:100%; min-height:220px; }  /* 보이는 높이 보장 */
+.section-box .calendar{ margin:8px 0; }
 
 /* ===== Controls & Inputs ===== */
 .row{display:flex;align-items:center}
