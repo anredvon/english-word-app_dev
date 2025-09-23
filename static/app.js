@@ -41,13 +41,12 @@ const qInputWrap=$("qInputWrap"), qInput=$("qInput"), qSubmit=$("qSubmit"), qWro
 const modeSheet=$("modeSheet"), modeTitle=$("modeTitle"), modeButtons=$("modeButtons"), modeCancel=$("modeCancel");
 
 /* ====== 상태 ====== */
-let words=[];                 
-let currentFilterDate="";     
+let words=[];                 // 현재 리스트
+let currentFilterDate="";     // 달력 클릭 필터
 let bulkParsed=[];
-let regSet = new Set();      // calendar marking
+let regSet = new Set();       // 달력 마킹
 let regCount = {};
 let calY, calM;
-
 let quizState = { pool:[], idx:0, score:0, wrongIds:[], mode:"en2ko" };
 
 /* ====== 초기 ====== */
@@ -72,7 +71,7 @@ $("searchForm")?.addEventListener("submit", async (e)=>{
   scrollToList();
 });
 
-/* ====== 목록 로드 ====== */
+/* ====== 목록 로드/렌더 ====== */
 async function loadWords({date, q}={}){
   const params = new URLSearchParams();
   if(date) params.set("date", date);
@@ -82,18 +81,14 @@ async function loadWords({date, q}={}){
   render();
 }
 
-/* ====== 발음 ====== */
 function speakWord(word, voice="female"){
   if(!("speechSynthesis" in window)) { alert("이 브라우저는 음성합성을 지원하지 않아요."); return; }
   const u = new SpeechSynthesisUtterance(word);
-  u.lang = "en-US";
-  u.rate = 0.95;
-  u.pitch = voice==="male"?0.8:1.2;
+  u.lang = "en-US"; u.rate = 0.95; u.pitch = voice==="male"?0.8:1.2;
   window.speechSynthesis.cancel();
   window.speechSynthesis.speak(u);
 }
 
-/* ====== 렌더 ====== */
 function render(){
   listEl.innerHTML = "";
   words.forEach(it=>{
@@ -123,7 +118,6 @@ function render(){
       if(!confirm("정말 삭제할까요?")) return;
       await fetch(`/api/words/${e.currentTarget.getAttribute("data-id")}`, { method: "DELETE" });
       await loadWords({date: currentFilterDate});
-      // 달력 마킹 재로딩
       await loadDates(); renderCal(calY,calM);
     });
   });
@@ -144,7 +138,6 @@ wordForm?.addEventListener("submit", async (e)=>{
   alert("등록되었습니다.");
   wordForm.reset();
   if (regDateEl) regDateEl.value = today();
-  // 목록/달력 갱신
   await loadWords({date: currentFilterDate});
   await loadDates(); renderCal(calY,calM);
 });
@@ -188,7 +181,7 @@ bulkApplyBtn?.addEventListener("click", async ()=>{
   }
 });
 
-/* ====== 캘린더 ====== */
+/* ====== 캘린더 (안전 초기화 + 강제 렌더) ====== */
 const WEEK = ['일','월','화','수','목','금','토'];
 
 async function loadDates(){
@@ -198,13 +191,13 @@ async function loadDates(){
     regCount = j.byCount || {};
   }catch(e){
     regSet = new Set(); regCount = {};
-    console.warn('calendar: load failed', e);
+    console.warn('[calendar] loadDates failed:', e);
   }
 }
 
 function renderCal(y,m){
   const el = $("calendarContainer");
-  if(!el) return;
+  if(!el){ console.warn('[calendar] container not found'); return; }
   el.innerHTML = '';
 
   // 요일 헤더
@@ -214,12 +207,13 @@ function renderCal(y,m){
   });
 
   const first = new Date(y,m,1);
-  const pad = first.getDay();
-  const days = new Date(y,m+1,0).getDate();
+  const pad   = first.getDay();
+  const days  = new Date(y,m+1,0).getDate();
 
   for(let i=0;i<pad;i++){
     const d=document.createElement('div');
-    d.className='day empty'; el.appendChild(d);
+    d.className='day empty';
+    el.appendChild(d);
   }
   for(let d=1; d<=days; d++){
     const mm = String(m+1).padStart(2,'0');
@@ -236,7 +230,6 @@ function renderCal(y,m){
       const lv = c>=6?3:(c>=3?2:1);
       cell.dataset.level = String(lv);
     }
-    // 날짜 클릭 → 목록 로드
     cell.addEventListener('click', async ()=>{
       currentFilterDate = key;
       await loadWords({date: key});
