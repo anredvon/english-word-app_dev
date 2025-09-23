@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+  <title>지훈이의 신나는 영어단어 학습</title>
+  <link rel="stylesheet" href="/static/style.css" />
+  <script defer src="/static/app.js"></script>
+</head>
+<body>
+  <!-- HERO -->
+  <section class="hero">
+    <div class="hero-card">
+      <div class="hero-head">
+        <h1 class="hero-title">지훈이의 신나는<br />영어단어 학습....🦖</h1>
+        <span class="heart-badge" aria-hidden="true">❤</span>
+      </div>
+      <!-- 전역 검색 -->
+      <form id="searchForm" class="search-bar" onsubmit="return false;">
+        <span class="search-icon" aria-hidden="true">🔎</span>
+        <input id="searchInput" type="search" placeholder="검색어를 입력해주세요" aria-label="단어 검색" />
+        <button class="sr-only" type="submit">검색</button>
+      </form>
+    </div>
+  </section>
+
+  <!-- CALENDAR (섹션 분리/베이지 라운딩) -->
+  <div class="section-box">
+    <h2 id="calLabel" class="section-h">달력</h2>
+    <div id="calendarContainer" class="calendar"></div>
+    <div class="cal-nav">
+      <button id="prevMonthBtn" aria-label="이전 달">◀︎</button>
+      <button id="nextMonthBtn" aria-label="다음 달">▶︎</button>
+    </div>
+  </div>
+
+  <!-- MENU (섹션 분리/베이지 라운딩) -->
+  <div class="section-box">
+    <h2 class="section-h">단어카드 등록 / Quiz</h2>
+    <div class="tiles">
+      <button id="openSingleAdd" class="tile sm">단일카드 등록</button>
+      <button id="openBulk" class="tile sm">대량카드 등록</button>
+      <button id="openMCQ" class="tile sm">객관식 Quiz</button>
+      <button id="openSAQ" class="tile sm">주관식 Quiz</button>
+    </div>
+  </div>
+
+  <!-- 단일 등록 패널 (토글로 열림) -->
+  <div class="section-box hidden" id="singlePanel">
+    <section class="panel">
+      <h2 class="section-h">📥 단일 단어 등록</h2>
+      <form id="wordForm">
+        <div class="row gap">
+          <input id="word" type="text" placeholder="단어" required />
+          <input id="meaning" type="text" placeholder="뜻" required />
+          <input id="regDate" type="date" />
+          <button type="submit" class="accent">추가</button>
+        </div>
+        <div class="row">
+          <input id="example" type="text" placeholder="예문 (선택)" />
+        </div>
+      </form>
+    </section>
+  </div>
+
+  <!-- 대량 등록 패널 (토글로 열림) -->
+  <div class="section-box hidden" id="bulkPanel">
+    <section class="panel">
+      <h2 class="section-h">✏️ 대량 등록</h2>
+      <div class="row gap wrap">
+        <textarea id="bulkInput" placeholder="apple - 사과 | I like an apple." style="width:100%;min-height:120px;"></textarea>
+        <div class="row gap">
+          <input type="date" id="bulkDate" />
+          <button id="bulkParse" class="ghost">미리보기</button>
+          <button id="bulkApply" class="accent" disabled>등록</button>
+          <span id="bulkSpinner" class="hidden">⏳</span>
+        </div>
+      </div>
+      <div id="bulkStatus" class="muted"></div>
+      <ul id="bulkPreview"></ul>
+    </section>
+  </div>
+
+  <!-- 단어 카드 목록 (섹션 분리/베이지 라운딩) -->
+  <div class="section-box">
+    <section class="panel">
+      <h2 class="section-h">📊 단어 카드</h2>
+      <ul id="wordList"></ul>
+    </section>
+  </div>
+
+  <!-- 푸터 -->
+  <footer class="site-footer">© 2025. 지훈의 영어 APP</footer>
+
+  <!-- 퀴즈 모달 -->
+  <div id="quizModal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="qWord">
+    <div class="modal-body">
+      <div class="modal-head">
+        <strong>퀴즈</strong>
+        <button id="quizClose" class="ghost sm">닫기</button>
+      </div>
+      <div class="quiz-stat">
+        <span id="qCount">0/0</span>
+        <span id="qScore">점수 0</span>
+      </div>
+      <div id="qWord" class="qword">—</div>
+      <div id="qChoices" class="choices"></div>
+
+      <!-- 주관식 입력 -->
+      <div id="qInputWrap" class="hidden">
+        <input id="qInput" type="text" placeholder="정답 입력 (필기 가능)" />
+        <button id="qSubmit" class="accent">제출</button>
+      </div>
+
+      <div class="quiz-actions">
+        <button id="qNext" class="accent" disabled>다음</button>
+        <button id="qRestart" class="ghost sm">처음부터</button>
+        <button id="qWrongOnly" class="ghost sm" disabled>오답만 다시</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 퀴즈 모드 선택 시트 -->
+  <div id="modeSheet" class="sheet hidden">
+    <div class="sheet-body">
+      <h3 id="modeTitle">모드 선택</h3>
+      <div id="modeButtons" class="sheet-grid"></div>
+      <button id="modeCancel" class="ghost" style="margin-top:10px">닫기</button>
+    </div>
+  </div>
+</body>
+</html>
