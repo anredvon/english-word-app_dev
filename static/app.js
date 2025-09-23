@@ -213,12 +213,25 @@ bulkApplyBtn?.addEventListener("click", async ()=>{
 /* ===================== 달력 ===================== */
 async function loadDates(){
   try{
-    const j = await jget('/api/word-dates');   // {dates:[...], byCount:{...}}
-    regSet = new Set(j.dates || []);
-    regCount = j.byCount || {};
+    // 캐시 무력화 쿼리 파라미터 추가
+    const j = await jget('/api/word-dates?_=' + Date.now());
+    regSet   = new Set((j && j.dates) || []);
+    regCount = (j && j.byCount) || {};
   }catch(e){
     console.warn("[calendar] loadDates failed:", e);
     regSet = new Set(); regCount = {};
+  }
+
+  // 폴백: /api/word-dates 가 비어 있거나 실패해도,
+  // 이미 받아온 words로 날짜 집계해서 마킹되도록
+  if (regSet.size === 0 && Array.isArray(words) && words.length){
+    const counts = {};
+    for(const w of words){
+      const d = w.registered_on;
+      if (d) counts[d] = (counts[d]||0) + 1;
+    }
+    regSet   = new Set(Object.keys(counts));
+    regCount = counts;
   }
 }
 
